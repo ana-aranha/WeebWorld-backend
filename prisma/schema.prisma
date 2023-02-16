@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Sessions {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  token     String
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt DateTime  @default(now()) @db.Timestamp(6)
+  deletedAt DateTime? @db.Timestamp(6)
+  Users     Users     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Topic {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(150)
+  createdAt     DateTime        @default(now()) @db.Timestamp(6)
+  deletedAt     DateTime?       @db.Timestamp(6)
+  TopicBookmark TopicBookmark[]
+  TopicPost     TopicPost[]
+}
+
+model TopicBookmark {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  statusId  Int
+  topicId   Int
+  itemId    Int
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt DateTime  @default(now()) @db.Timestamp(6)
+  deletedAt DateTime? @db.Timestamp(6)
+  status    status    @relation(fields: [statusId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Topic     Topic     @relation(fields: [topicId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Users     Users     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model TopicPost {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  topicId   Int
+  post      String    @db.VarChar(280)
+  upVote    Int       @default(0)
+  downVote  Int       @default(0)
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  deletedAt DateTime? @db.Timestamp(6)
+  Topic     Topic     @relation(fields: [topicId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Users     Users     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model TopicRating {
+  id                Int           @id @default(autoincrement())
+  topicBookmarkId   Int
+  createdAt         DateTime      @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime      @default(now()) @db.Timestamp(6)
+  deletedAt         DateTime?     @db.Timestamp(6)
+  TopicRating       TopicRating   @relation("TopicRatingToTopicRating", fields: [topicBookmarkId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_TopicRating TopicRating[] @relation("TopicRatingToTopicRating")
+}
+
+model Users {
+  id            Int             @id @default(autoincrement())
+  username      String          @unique(map: "username_unique") @db.VarChar(50)
+  avatarUrl     String
+  email         String          @unique @db.VarChar(320)
+  password      String?
+  createdAt     DateTime        @default(now()) @db.Timestamp(6)
+  deletedAt     DateTime?       @db.Timestamp(6)
+  Sessions      Sessions[]
+  TopicBookmark TopicBookmark[]
+  TopicPost     TopicPost[]
+}
+
+model status {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(100)
+  createdAt     DateTime        @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime?       @db.Timestamp(6)
+  TopicBookmark TopicBookmark[]
+}
